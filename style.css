@@ -1,0 +1,73 @@
+/* Set a custom background color for the body */
+body {
+  background-color: #f3f3f3;
+}
+
+/* Style the page title */
+h1 {
+  font-size: 36px;
+  color: #00418E;
+  font-family: 'Times New Roman', Times, serif;
+  text-align: center;
+  margin-top: 50px;
+}
+
+/* Style the paragraph text */
+p {
+  font-size: 18px;
+  color: #343A40;
+  font-family: 'Arial', sans-serif;
+  line-height: 1.5;
+}
+
+/* Style the section headings */
+h3 {
+  font-size: 24px;
+  color: #00418E;
+  font-family: 'Times New Roman', Times, serif;
+  margin-top: 30px;
+  margin-bottom: 20px;
+}
+
+/* Style the input file button */
+input[type="file"] {
+  border: 2px solid #93bae2;
+  padding: 10px;
+  border-radius: 5px;
+  font-size: 16px;
+  color: #343A40;
+  margin-bottom: 20px;
+}
+
+/* Style the radio buttons */
+.form-check-input {
+  margin-right: 10px;
+}
+
+.form-check-label {
+  font-size: 18px;
+  color: #343A40;
+  font-family: 'Arial', sans-serif;
+}
+
+.highlighted {
+  background-color: #ffc107;
+}
+
+/* Style the select dropdowns */
+.select {
+  margin-bottom: 20px;
+}
+
+/* Add space between rows */
+.row {
+  margin-bottom: 20px;
+}
+
+/* Style the data table
+#dataTable {
+  background-color: white;
+  border-radius: 5px;
+  padding: 20px;
+  box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
+} */
