@@ -1,12 +1,3 @@
-document.querySelectorAll('input[name="fairnessDefinition"]').forEach((elem) => {
-    elem.addEventListener("change", function (event) {
-        let selectedFairnessDefinition = event.target.value;
-
-        // Update the visualization based on the selected fairness definition
-        updateVisualization(selectedFairnessDefinition);
-    });
-});
-
 function updateVisualization(selectedFairnessDefinition) {
     // Clear the current visualization
     d3.select("#visualization").html("");
@@ -58,8 +49,8 @@ function displayAttributeSelection(parsedData) {
 
     // Generate form for selecting sensitive and target attributes
     let formHtml = `
-        <label for="sensitiveAttribute">Sensitive Attribute:</label>
-        <select id="sensitiveAttribute">
+        <label for="sensitiveAttribute">Sensitive Attributes:</label>
+        <select id="sensitiveAttributes">
             ${columns.map(col => `<option value="${col}">${col}</option>`).join('')}
         </select>
         <br>
@@ -73,12 +64,14 @@ function displayAttributeSelection(parsedData) {
 
     document.getElementById('attributeSelection').innerHTML = formHtml;
     document.getElementById('attributeSelection').style.display = 'block'; // Show the attribute selection div
+    document.getElementById("fairnessDefinitions").style.display = "block";
 
+
+    
     // Add event listener for the generate visualization button
     document.getElementById("generateVisual").addEventListener("click", function () {
-        let sensitiveAttribute = document.getElementById("sensitiveAttribute").value;
-        let targetAttribute = document.getElementById("targetAttribute").value;
-    
+        let sensitiveAttribute = document.getElementById("sensitiveAttributes").value;
+        let targetAttribute = document.getElementById("targetAttribute").value;    
         // Clear the current data table
         d3.select("#dataTableContainer").html("");
     
@@ -87,6 +80,8 @@ function displayAttributeSelection(parsedData) {
     
         // Generate the grouped bar chart
         generateGroupedBarChart(parsedData, sensitiveAttribute, targetAttribute);
+
+        console.log('Generate visualization button clicked');
     });
 
     // Call the createDataTable function to populate the table
@@ -95,6 +90,8 @@ function displayAttributeSelection(parsedData) {
 
 
 document.addEventListener("DOMContentLoaded", () => {
+
+
     const inputFile = document.getElementById("inputFile");
     if (inputFile) {
         inputFile.addEventListener("change", function (event) {
