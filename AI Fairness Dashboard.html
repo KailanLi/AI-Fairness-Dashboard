@@ -12,44 +12,7 @@
     <script src="https://d3js.org/d3.v5.min.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
-<style>
-    .table-container {
-        padding: 0;
-        background-color: white;
-    }
-
-    .table {
-        border-collapse: collapse;
-        width: 100%;
-        border: 2px solid #444444; /* Add this line for a dark grey border */
-    }
-
-    .table th, .table td {
-        padding: 8px;
-        text-align: center;
-        border-bottom: 1px solid #ddd;
-        border: 1px solid #3d42dc; /* Add this line for a blue cell border */
-    }
-
-    .table tbody tr:nth-child(even) {
-        background-color: #f2f2f2;
-    }
-
-    .sensitive-column {
-        background-color: orange;
-    }
-
-    .target-column {
-        background-color: green;
-    }
-    .highlighted {
-    background-color: #ffc107;
-}
-</style>
-
 <body>
-    
-
     <div class="container-fluid">
         <!-- Header section -->
         <div class="row">
@@ -88,15 +51,16 @@
             <!-- Visualization and data table section -->
             <div class="col-md-8">
                 <div class="row">
-                    <!-- Visualization section -->
-                    <div class="col-md-6">
-                        <h3>Visualization</h3>
-                        <div id="visualization"></div>
+                <!-- Visualization section -->
+                <div class="col-md-6 visualization-section">
+                    <h3>Visualization</h3>
+                    <div id="visualization">
+                        <div class="visualization-container"></div>
                     </div>
-
+                </div>
                     <!-- Data table section -->
-                    <div class="col-md-6">
-                        <h3>Data Table</h3>
+                    <div class="col-md-6 Data-Sample">
+                        <h3>Data Table (Top 5 Rows)</h3>
                         <div id="dataTableContainer" style="width: 100%; overflow: auto;">
                             <div id="dataTable"></div>
                         </div>

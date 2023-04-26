@@ -136,9 +136,9 @@ function generateGroupedBarChart(data, sensitiveAttribute, targetAttribute) {
     console.log("Grouped data:", groupedData);
 
     // Define chart dimensions and margins
-    const margin = {top: 20, right: 20, bottom: 50, left: 50};
-    const width = 800 - margin.left - margin.right;
-    const height = 400 - margin.top - margin.bottom;
+    const margin = {top: 20, right: 20, bottom: 40, left: 40};
+    const width = 500 - margin.left - margin.right;
+    const height = 300 - margin.top - margin.bottom;
 
     // Create a tooltip element
     const tooltip = d3.select("body").append("div")
@@ -166,7 +166,7 @@ function generateGroupedBarChart(data, sensitiveAttribute, targetAttribute) {
     const yAxis = d3.axisLeft(y);
 
     // Create the SVG element
-    const svg = d3.select("#visualization").append("svg")
+    const svg = d3.select(".visualization-container").append("svg")
         .attr("width", width + margin.left + margin.right)
         .attr("height", height + margin.top + margin.bottom)
         .append("g")
@@ -198,14 +198,16 @@ function generateGroupedBarChart(data, sensitiveAttribute, targetAttribute) {
         .attr("y", d => y(d.value))
         .attr("height", d => height - y(d.value))
         .attr("fill", (d, i) => d3.schemeCategory10[i])
-        .on("mouseover", function (d) {
-            // Show tooltip
-            tooltip.transition()
-                .duration(200)
-                .style("opacity", .9);
-            tooltip.html("Value: " + d.value)
-                .style("left", (d3.event.pageX + 5) + "px")
-                .style("top", (d3.event.pageY - 28) + "px");
+        .on("mouseover", function (d, i, nodes) {
+    const parentData = d3.select(nodes[i].parentNode).datum();
+
+    // Show tooltip
+    tooltip.transition()
+        .duration(200)
+        .style("opacity", .9);
+    tooltip.html("Value: " + d.value)
+        .style("left", (d3.event.pageX + 5) + "px")
+        .style("top", (d3.event.pageY - 28) + "px");
     
             // Highlight the corresponding row in the table
             d3.select("#fairnessMetricResults")
@@ -222,6 +224,15 @@ function generateGroupedBarChart(data, sensitiveAttribute, targetAttribute) {
             d3.select("#fairnessMetricResults")
                 .selectAll("tr")
                 .classed("highlighted", false);
+        })
+        .on("click", function (d, i, nodes) {
+            const parentData = d3.select(nodes[i].parentNode).datum();
+        
+            // Filter the data based on the selected bar
+            const filteredData = data.filter(row => row[sensitiveAttribute] === parentData.key && row[targetAttribute] === d.key);
+        
+            // Update the table
+            updateDataTable(filteredData.slice(0, 5), sensitiveAttribute, targetAttribute);
         });
     
 
@@ -261,16 +272,7 @@ function createDataTable(data, sensitiveAttribute, targetAttribute) {
     // Get top 5 rows
     const topRows = data.slice(0, 5);
 
-    // Get 5 random rows
-    const randomRows = [];
-    for (let i = 0; i < 5; i++) {
-        const randomIndex = Math.floor(Math.random() * data.length);
-        randomRows.push(data[randomIndex]);
-    }
-
-    // Combine top and random rows
-    const combinedRows = topRows.concat(randomRows);
-
+    const combinedRows = topRows
     // Create table
     const table = d3.select("#dataTableContainer")
         .classed("table-container", true)
@@ -292,6 +294,27 @@ function createDataTable(data, sensitiveAttribute, targetAttribute) {
     const tbody = table.append("tbody");
     tbody.selectAll("tr")
         .data(combinedRows)
+        .enter()
+        .append("tr")
+        .selectAll("td")
+        .data(row => columns.map(column => ({ value: row[column], column })))
+        .enter()
+        .append("td")
+        .classed("sensitive-column", d => d.column === sensitiveAttribute)
+        .classed("target-column", d => d.column === targetAttribute)
+        .text(d => d.value);
+}
+
+function updateDataTable(newData, sensitiveAttribute, targetAttribute) {
+    const columns = Object.keys(newData[0]);
+
+    // Remove the existing table body
+    d3.select("#dataTableContainer").select("tbody").remove();
+
+    // Create a new table body with the newData
+    const tbody = d3.select("#dataTableContainer").select("table").append("tbody");
+    tbody.selectAll("tr")
+        .data(newData)
         .enter()
         .append("tr")
         .selectAll("td")
