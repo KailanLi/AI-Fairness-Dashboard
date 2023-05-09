@@ -1,3 +1,7 @@
+const fontSize = 12;
+const colorScale = d3.scaleSequential(d3.interpolateRdBu).domain([0.2, 1]);
+
+
 function updateVisualization(selectedFairnessDefinition) {
     // Clear the current visualization
     d3.select("#visualization").html("");
@@ -80,7 +84,7 @@ function displayAttributeSelection(parsedData) {
     
         // Generate the grouped bar chart
         generateGroupedBarChart(parsedData, sensitiveAttribute, targetAttribute);
-
+        generateSankeyDiagram(parsedData, sensitiveAttribute, targetAttribute); 
         console.log('Generate visualization button clicked');
     });
 
@@ -197,7 +201,7 @@ function generateGroupedBarChart(data, sensitiveAttribute, targetAttribute) {
         .attr("x", d => x1(d.key))
         .attr("y", d => y(d.value))
         .attr("height", d => height - y(d.value))
-        .attr("fill", (d, i) => d3.schemeCategory10[i])
+        .attr("fill", (d, i) => colorScale(i))
         .on("mouseover", function (d, i, nodes) {
     const parentData = d3.select(nodes[i].parentNode).datum();
 
@@ -243,7 +247,7 @@ function generateGroupedBarChart(data, sensitiveAttribute, targetAttribute) {
         .attr("x", d => x1(d.key))
         .attr("y", d => y(d.value))
         .attr("height", d => height - y(d.value))
-        .attr("fill", (d, i) => d3.schemeCategory10[i]);
+        .attr("fill", (d, i) => colorScale(i));
 
         const legend = svg.selectAll(".legend")
         .data(groupedData[0].values.map(d => d.key))
@@ -255,14 +259,17 @@ function generateGroupedBarChart(data, sensitiveAttribute, targetAttribute) {
             .attr("x", width - 18)
             .attr("width", 18)
             .attr("height", 18)
-            .attr("fill", (d, i) => d3.schemeCategory10[i]);
+            .attr("fill", (d, i) => colorScale(i));
         
         legend.append("text")
             .attr("x", width - 24)
             .attr("y", 9)
             .attr("dy", ".35em")
+            .attr("font-size", fontSize) // Apply the font size
             .style("text-anchor", "end")
             .text(d => d);
+         
+ 
 }
 
 function createDataTable(data, sensitiveAttribute, targetAttribute) {
@@ -325,3 +332,89 @@ function updateDataTable(newData, sensitiveAttribute, targetAttribute) {
         .classed("target-column", d => d.column === targetAttribute)
         .text(d => d.value);
 }
+
+// Sankey
+
+function generateSankeyDiagram(data, sensitiveAttribute, targetAttribute) {
+    // Prepare the data for visualization
+    let nodes = [];
+    let links = [];
+  
+    data.forEach(row => {
+        let sensitiveValue = sensitiveAttribute + ": " + row[sensitiveAttribute];
+        let targetValue = targetAttribute + ": " + row[targetAttribute];
+  
+      let sensitiveIndex = nodes.findIndex(node => node.name === sensitiveValue);
+      let targetIndex = nodes.findIndex(node => node.name === targetValue);
+  
+      if (sensitiveIndex === -1) {
+        nodes.push({ name: sensitiveValue });
+        sensitiveIndex = nodes.length - 1;
+      }
+  
+      if (targetIndex === -1) {
+        nodes.push({ name: targetValue });
+        targetIndex = nodes.length - 1;
+      }
+  
+      let linkIndex = links.findIndex(link => link.source === sensitiveIndex && link.target === targetIndex);
+  
+      if (linkIndex === -1) {
+        links.push({ source: sensitiveIndex, target: targetIndex, value: 1 });
+      } else {
+        links[linkIndex].value += 1;
+      }
+    });
+  
+    const margin = { top: 20, right: 20, bottom: 40, left: 40 };
+    const width = 700 - margin.left - margin.right;
+    const height = 500 - margin.top - margin.bottom;
+  
+    const sankey = d3.sankey()
+      .nodeWidth(15)
+      .nodePadding(10)
+      .extent([[1, 1], [width - 1, height - 6]]);
+  
+    const svg = d3.select(".visualization-container").append("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+      .attr("transform", `translate(${margin.left},${margin.top})`);
+  
+    let graph = { nodes, links };
+  
+    sankey(graph);
+  
+    svg.append("g")
+      .selectAll("rect")
+      .data(graph.nodes)
+      .enter().append("rect")
+      .attr("x", d => d.x0)
+      .attr("y", d => d.y0)
+      .attr("height", d => d.y1 - d.y0)
+      .attr("width", d => d.x1 - d.x0)
+      .style("fill", d => colorScale(d.index % 10));
+
+      svg.append("g")
+      .selectAll("text")
+      .data(graph.nodes)
+      .enter().append("text")
+      .attr("x", d => d.x0 < width / 2 ? d.x1 + 6 : d.x0 - 6)
+      .attr("y", d => (d.y1 + d.y0) / 2)
+      .attr("dy", "0.35em")
+      .attr("text-anchor", d => d.x0 < width / 2 ? "start" : "end")
+      .attr("font-size", fontSize) // Apply the font size
+      .text(d => d.name);
+  
+
+    svg.append("g")
+      .attr("fill", "none")
+      .attr("stroke-opacity", 0.5)
+      .selectAll("g")
+      .data(graph.links)
+      .enter().append("path")
+      .attr("d", d3.sankeyLinkHorizontal())
+      .attr("stroke-width", d => Math.max(1, d.width))
+      .attr("stroke", d => colorScale(d.source.index % 10));
+  }
+

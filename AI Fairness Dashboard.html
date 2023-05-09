@@ -11,6 +11,7 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script src="https://d3js.org/d3.v5.min.js"></script>
     <link rel="stylesheet" href="style.css">
+    
 </head>
 <body>
     <div class="container-fluid">
@@ -50,27 +51,30 @@
 
             <!-- Visualization and data table section -->
             <div class="col-md-8">
-                <div class="row">
-                <!-- Visualization section -->
-                <div class="col-md-6 visualization-section">
-                    <h3>Visualization</h3>
-                    <div id="visualization">
-                        <div class="visualization-container"></div>
-                    </div>
-                </div>
+                <div class="row flex-column">
                     <!-- Data table section -->
-                    <div class="col-md-6 Data-Sample">
+                    <div class="col-md-12 Data-Sample">
                         <h3>Data Table (Top 5 Rows)</h3>
                         <div id="dataTableContainer" style="width: 100%; overflow: auto;">
                             <div id="dataTable"></div>
                         </div>
-                        
                     </div>
                 </div>
+                <div class="row">
+                    <!-- Visualization section -->
+                    <div class="col-md-12 visualization-section">
+                        <h3>Visualization</h3>
+                        <div id="visualization">
+                            <div class="visualization-container"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
     <script src="script.js"></script>   
+    <script src="https://unpkg.com/d3@5.9.7"></script>
+    <script src="https://unpkg.com/d3-sankey@0.12.3"></script>
+    <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
 </body>
 </html>
