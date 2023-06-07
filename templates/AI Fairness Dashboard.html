@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Fairness Dashboard</title>
-    <link rel="icon" type="image/png" href="UTS ICON.png">
+    <!-- <link rel="icon" type="image/png" href="UTS ICON.png"> -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='UTS ICON.png') }}">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
@@ -67,7 +68,9 @@
                     <div class="col-md-12 visualization-section">
                         <h3>Visualization</h3>
                         <div id="visualization">
-                            <div class="visualization-container"></div>
+                            <div class="visualization-container">
+                                <div id="plotly_chart">{{ plot | safe }}</div>
+                            </div>
                         </div>
                     </div>
                 </div>
