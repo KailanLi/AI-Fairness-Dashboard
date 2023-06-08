@@ -114,7 +114,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     alert("Unsupported file format. Please upload a CSV or JSON file.");
                     return;
                 }
-
+                console.log(parsedData);
                 // Get column names
                 let columns = Object.keys(parsedData[0]);
 
