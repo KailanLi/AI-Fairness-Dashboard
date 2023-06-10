@@ -36,6 +36,7 @@ function populateAttributeDropdowns(attributes) {
         sensitiveOption.value = attribute;
         sensitiveOption.text = attribute;
         sensitiveAttributesSelect.add(sensitiveOption);
+        
 
         // Create options for target attribute
         let targetOption = document.createElement("option");
@@ -86,11 +87,23 @@ function displayAttributeSelection(parsedData) {
         generateGroupedBarChart(parsedData, sensitiveAttribute, targetAttribute);
         generateSankeyDiagram(parsedData, sensitiveAttribute, targetAttribute); 
         console.log('Generate visualization button clicked');
+        $.ajax({
+            url: '/generate_visual',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({'transferredData':parsedData,'sensitiveAttribute':sensitiveAttribute, 'targetAttribute':targetAttribute}),
+            dataType: 'json',
+            success: function(response) {
+                // Handle response from server
+                $('#plotly_chart').html(response.plot);
+            }
+        });
     });
 
     // Call the createDataTable function to populate the table
     createDataTable(parsedData);
 }
+
 
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -122,6 +135,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 populateAttributeDropdowns(columns);
 
                 displayAttributeSelection(parsedData);
+                
+                
             };
 
             reader.readAsText(file);
