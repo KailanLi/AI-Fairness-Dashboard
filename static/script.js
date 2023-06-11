@@ -64,7 +64,13 @@ function displayAttributeSelection(parsedData) {
             ${columns.map(col => `<option value="${col}">${col}</option>`).join('')}
         </select>
         <br>
+        <label for="Prediction">Prediction:</label>
+        <select id="Prediction">
+            ${columns.map(col => `<option value="${col}">${col}</option>`).join('')}
+        </select>
+        <br>
         <button id="generateVisual">Generate Visualization</button>
+
     `;
 
     document.getElementById('attributeSelection').innerHTML = formHtml;
@@ -77,6 +83,7 @@ function displayAttributeSelection(parsedData) {
     document.getElementById("generateVisual").addEventListener("click", function () {
         let sensitiveAttribute = document.getElementById("sensitiveAttributes").value;
         let targetAttribute = document.getElementById("targetAttribute").value;    
+        let Prediction = document.getElementById("Prediction").value;
         // Clear the current data table
         d3.select("#dataTableContainer").html("");
         // Generate a new data table with the selected sensitive and target attributes
@@ -90,7 +97,7 @@ function displayAttributeSelection(parsedData) {
             url: '/generate_visual',
             type: 'POST',
             contentType: 'application/json',
-            data: JSON.stringify({'transferredData':parsedData,'sensitiveAttribute':sensitiveAttribute, 'targetAttribute':targetAttribute}),
+            data: JSON.stringify({'transferredData':parsedData,'sensitiveAttribute':sensitiveAttribute, 'targetAttribute':targetAttribute,'Prediction':Prediction}),
             dataType: 'json',
             success: function(data) {
                 // Handle response from server
