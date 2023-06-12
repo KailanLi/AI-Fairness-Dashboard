@@ -7,6 +7,7 @@ from pyecharts import options as opts
 from pyecharts.charts import Bar
 import plotly.subplots as sp
 import plotly.graph_objs as go
+import matplotlib.colors as mcolors
 import dash
 from dash import dash_table,html
 
@@ -18,17 +19,15 @@ grouped_df = None  # global variable to store the grouped dataframe
 sensitive_attribute = None  # global variable to store the sensitive attribute
 target_attribute = None  # global variable to store the target attribute
 
-g10_colors = ['#1F77B4', '#FF7F0E', '#2CA02C', '#D62728', '#9467BD',
-              '#8C564B', '#E377C2', '#7F7F7F', '#BCBD22', '#17BECF']
 
 # Create a custom template
 my_template = go.layout.Template()
 
 # Update the default margin
-my_template.layout.margin = dict(l=25, r=25, t=25, b=25)
+my_template.layout.margin = dict(l=30, r=30, t=30, b=30)
 
 # Update the default colorway
-my_template.layout.colorway = g10_colors
+my_template.layout.colorway = px.colors.qualitative.G10
 
 # Set the default template
 pio.templates['my_template'] = my_template
@@ -54,23 +53,6 @@ def generate_visual():
     grouped_df = df.groupby([sensitive_attribute, target_attribute]).size().reset_index(name='counts')
     table_plot=generate_table()
     bar_plot=generate_bar()
-    # app.layout = html.Div([   老晁，这段跑不出来，我现在可以实现简单的打印整表，这段代码可以分表，但是用的
-    # dash_table.DataTable(     dash的一个库，和flask是矛盾的，所以实现起来很复杂
-    #     id='table-paging',
-    #     columns=[{"name": i, "id": i} for i in df.columns],
-    #     data=df.to_dict('records'),
-    #     page_current=0,
-    #     page_size=10,
-    #     page_action='custom'
-    #     )
-    # ])
-    # bar_chart = px.histogram(grouped_df, x=sensitive_attribute, y='counts', color=target_attribute,title=sensitive_attribute )
-    # fig = sp.make_subplots(rows=2, cols=2)
-    # # Add the first trace from the bar chart to the subplot
-    # for trace in bar_chart.data:
-    #     fig.add_trace(trace, row=1, col=1)
-    # fig.update_layout(barmode='stack')
-    # bar_plot = pio.to_html(fig, full_html=False)
     sankey_chart = generate_sankey()
     sankey_plot = pio.to_html(sankey_chart, full_html=False)
     return jsonify({'table_plot':table_plot,'bar_plot': bar_plot, 'sankey_plot': sankey_plot})
@@ -106,45 +88,111 @@ def generate_bar():
     return bar
 
 
-
 def generate_sankey():
-    labels = list(df[sensitive_attribute].unique()) + list(df[target_attribute].unique())
-    source = [labels.index(x) for x in grouped_df[sensitive_attribute]]
-    target = [labels.index(x) for x in grouped_df[target_attribute]]
-    value = grouped_df['counts'].tolist()
-    # Define your nodes and links here
+    df_prediction_modified = df.copy()
+    df_prediction_modified[Prediction] = "Predicted" + df_prediction_modified[Prediction].astype(str)
+    # get the unique labels for each attribute
+    labels = list(df[target_attribute].unique()) + list(df[sensitive_attribute].unique()) + list(df_prediction_modified[Prediction].unique())
+    colorPalette = px.colors.qualitative.G10
+
+    # Assign colors to nodes for target_attribute and Prediction
+    colorDict = {}
+    usedColors = []
+    for i, label in enumerate(df[target_attribute].unique()):
+        color = colorPalette[i % len(colorPalette)]   # Cycling through G10 colors if there are more than 10 unique values
+        colorDict[label] = color
+        usedColors.append(color)
+
+    for i, label in enumerate(df_prediction_modified[Prediction].unique()):
+        color = colorPalette[i % len(colorPalette)]   # Cycling through G10 colors if there are more than 10 unique values
+        colorDict[label] = color
+        usedColors.append(color)
+
+    # Assign different colors to nodes for sensitive_attribute
+    for i, label in enumerate(df[sensitive_attribute].unique()):
+        color = colorPalette[(i+len(df[target_attribute].unique())+len(df_prediction_modified[Prediction].unique())) % len(colorPalette)]   # Cycling through G10 colors if there are more than 10 unique values
+        if color not in usedColors:   # Check if the color has already been used
+            colorDict[label] = color
+        else:   # If the color has been used, find a new color
+            for newColor in colorPalette:
+                if newColor not in usedColors:
+                    colorDict[label] = newColor
+                    usedColors.append(newColor)
+                    break
+
+    # get the counts for the flow from target_attribute to sensitive_attribute
+    target_to_sensitive = df.groupby([target_attribute, sensitive_attribute]).size().reset_index(name='counts')
+    source_ts = [labels.index(x) for x in target_to_sensitive[target_attribute]]
+    target_ts = [labels.index(x) for x in target_to_sensitive[sensitive_attribute]]
+    value_ts = target_to_sensitive['counts'].tolist()
+
+    # get the counts for the flow from sensitive_attribute to Prediction
+    sensitive_to_prediction = df_prediction_modified.groupby([sensitive_attribute, Prediction]).size().reset_index(name='counts')
+    source_sp = [labels.index(x) for x in sensitive_to_prediction[sensitive_attribute]]
+    target_sp = [labels.index(x) for x in sensitive_to_prediction[Prediction]]
+    value_sp = sensitive_to_prediction['counts'].tolist()
+
+    # define the nodes and links for the Sankey diagram
     nodes = dict(
-        pad=15,
-        thickness=20,
-        line=dict(color=g10_colors, width=0.5),
+        pad=35,
+        thickness=13,
+        line=dict(color=colorPalette, width=0.5),
         label=labels,
-        color=g10_colors
+        color=[colorDict[label] for label in labels]
     )
-
+    def hex_to_rgba(hex_color, opacity=1):
+        rgb = mcolors.hex2color(hex_color)
+        return 'rgba' + str(rgb + (opacity,))
+    
     link = dict(
-        source=source, 
-        target=target,
-        value=value,
-        color=g10_colors
-        
+        source=source_ts + source_sp, 
+        target=target_ts + target_sp,
+        value=value_ts + value_sp,
+       color=[hex_to_rgba(colorDict[labels[src]], opacity=0.2) for src in source_ts + source_sp]   # Set all link colors to match with the colors each node in sensitive_attribute used but with 0.2 opacity
     )
 
-    data = go.Sankey(node=nodes, link=link,)
-
+    data = go.Sankey(node=nodes, link=link)
     sankey_chart = go.Figure(data)
     return sankey_chart
 
+
 def generate_table():
+    # Compute the maximum length of each column
+    column_widths = [max([len(str(x)) for x in df[col].values] + [len(col)]) * 8 for col in df.columns]
+
     table = go.Figure(data=[go.Table(
-        header=dict(values=list(df.columns),
-                    fill_color='#1F77B4',
-                    align='left'),
-        cells=dict(values=[df[col] for col in df.columns],
-                   fill_color='White',
-                   align='left'))
-    ])
+        header=dict(
+            values=['<b>{}</b>'.format(col) for col in df.columns],  # Make column names bold
+            fill_color=px.colors.qualitative.G10[0],
+            align='center',
+            font=dict(color='white', size=12, family="Arial, monospace"),
+            height=40,
+        ),
+        cells=dict(
+            values=[df.head(20)[col] for col in df.columns],
+            fill_color='white',
+            align='center',
+            font=dict(size=12, family="Arial, monospace"),
+            height=30,
+        ),
+        columnwidth=30,  # Set column widths
+        )]
+    )
+
+    # Configure table
+    for i in range(len(table.layout.annotations)):
+        table.layout.annotations[i].align = "center"
+
+    table.update_layout(
+        autosize=True,
+    )
+
     table_chart = pio.to_html(table, full_html=False)
+
     return table_chart
+
+
+
 
 if __name__ == '__main__':
     server.run(debug=True)
