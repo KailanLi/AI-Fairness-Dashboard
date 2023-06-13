@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, session
 import os
 import pandas as pd
 import plotly.express as px
@@ -14,6 +14,7 @@ import dash
 from dash import dash_table,html
 
 server = Flask(__name__)
+server.secret_key = 'save'
 server.config['UPLOAD_FOLDER'] = 'static/uploads/'
 # app = dash.Dash(__name__, server=server, url_base_pathname='/dash/')
 df = None  # global variable to store the dataframe
@@ -51,13 +52,14 @@ def generate_visual():
     sensitive_attribute = data['sensitiveAttribute']
     target_attribute = data['targetAttribute']
     Prediction = data['Prediction']
-    print(Prediction)
+    print(df[target_attribute].head())
     grouped_df = df.groupby([sensitive_attribute, target_attribute]).size().reset_index(name='counts')
     table_plot=generate_table()
     bar_plot=generate_bar()
+    confusion_matrix_plot=generate_confusion_matrix()
     sankey_chart = generate_sankey()
     sankey_plot = pio.to_html(sankey_chart, full_html=False)
-    return jsonify({'table_plot':table_plot,'bar_plot': bar_plot, 'sankey_plot': sankey_plot})
+    return jsonify({'table_plot':table_plot,'bar_plot': bar_plot, 'sankey_plot': sankey_plot,'confusion_matrix_plot': confusion_matrix_plot})
 
 def generate_bar():
     color_dict = {value: color for value, color in zip(df[target_attribute].unique(), px.colors.qualitative.G10)}
@@ -88,7 +90,6 @@ def generate_bar():
     fig.update_layout(barmode='stack')
     bar = pio.to_html(fig, full_html=False)
     return bar
-
 
 def generate_sankey():
     df_prediction_modified = df.copy()
@@ -157,7 +158,6 @@ def generate_sankey():
     sankey_chart = go.Figure(data)
     return sankey_chart
 
-
 def generate_table():
     # Compute the maximum length of each column
     column_widths = [max([len(str(x)) for x in df[col].values] + [len(col)]) * 8 for col in df.columns]
@@ -193,11 +193,18 @@ def generate_table():
 
     return table_chart
 
-
-
-def generate_confusion_matrix(df, target_attribute, prediction):
+def generate_confusion_matrix():
     # Compute confusion matrix
-    cm = confusion_matrix(df[target_attribute], df[prediction])
+    # Compute confusion matrix
+    cm = confusion_matrix(list(df[target_attribute]), list(df[Prediction]), labels=df[target_attribute].unique())
+
+    # Calculate rates
+    tn, fp, fn, tp  = cm.ravel()
+    total = tn + fp + fn + tp
+    TP_rate = tp / (tp+fn)
+    FP_rate = fp / (fp+tn)
+    TN_rate = tn / (tn+fp)
+    FN_rate = fn / (fn+tp)
 
     # Convert confusion matrix to z-scores for heatmap
     z = cm[::-1]
@@ -206,32 +213,52 @@ def generate_confusion_matrix(df, target_attribute, prediction):
     z_text = [[str(y) for y in x] for x in z]
 
     # Set up the figure 
-    fig = ff.create_annotated_heatmap(z, annotation_text=z_text, colorscale='Viridis')
+    fig = ff.create_annotated_heatmap(z, annotation_text=z_text, colorscale='sunset')
 
     # Add title
-    fig.update_layout(title_text='<i><b>Confusion matrix</b></i>',
-                      # Add x-axis and y-axis labels
-                      xaxis = dict(title='Predicted value',
-                                   tickmode='array',
-                                   tickvals=[0,1],
-                                   ticktext=['Negative', 'Positive']),
-                      yaxis = dict(title='Actual value',
-                                   tickmode='array',
-                                   tickvals=[0,1],
-                                   ticktext=['Positive', 'Negative'],
-                                   autorange="reversed"),
-                      # Add colorbar
-                      autosize=True)
+    fig.update_layout(
+        # title_text='<i><b>Fairness Matrix</b></i>',
+        # Add x-axis and y-axis labels
+        xaxis = dict(title='Predicted value',
+                    tickmode='array',
+                    tickvals=[0,1],
+                    ticktext=['Negative', 'Positive'],
+                    title_standoff = 5),
+        yaxis = dict(title='Actual value',
+                    tickmode='array',
+                    tickvals=[0,1],
+                    ticktext=['Positive', 'Negative'],
+                    autorange="reversed",
+                    title_standoff = 5),
+        # Add colorbar
+        autosize=True,
+        # Resize figure
+        width=500,
+        height=300,
+        # Add rates as annotations
+        annotations=[
+            dict(text='TP rate: {:.2f}'.format(TP_rate), showarrow=False),
+            dict(text='FP rate: {:.2f}'.format(FP_rate), showarrow=False),
+            dict(text='TN rate: {:.2f}'.format(TN_rate), showarrow=False),
+            dict(text='FN rate: {:.2f}'.format(FN_rate), showarrow=False),
+        ],
+        # Adjust margins
+    )
 
-    return fig
 
-@server.route('/Confusion Matrix')   
-def generate_confusion_matrix_route():
-    target_attribute = df[sensitive_attribute]
-    Prediction = df[Prediction]
-    fig = generate_confusion_matrix(df, target_attribute, Prediction)
-    confusion_matrix_plot = pio.to_html(fig, full_html=False)
-    return jsonify({'confusion_matrix_plot': confusion_matrix_plot})
+    confusion_matrix_html = pio.to_html(fig, full_html=False)
+    return confusion_matrix_html
+
+
+
+# @server.route('/Confusion_Matrix', methods=['GET'])
+# def test():
+#     return """
+#     <h1>confusion_matrix</h1>
+#     <div id="confusion_matrix_plot"></div>
+#     """
+    
+    
 
 
 if __name__ == '__main__':

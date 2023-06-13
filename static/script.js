@@ -103,7 +103,8 @@ function displayAttributeSelection(parsedData) {
                 // Handle response from server
                 $("#dataTableContainer").html(data.table_plot)
                 $("#bar_plot").html(data.bar_plot);
-                $("#sankey_plot").html(data.sankey_plot);;
+                $("#sankey_plot").html(data.sankey_plot);
+                $("#confusion_matrix_plot").html(data.confusion_matrix_plot);
             }
         });
 
