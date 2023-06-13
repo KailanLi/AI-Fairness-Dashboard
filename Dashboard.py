@@ -8,6 +8,8 @@ from pyecharts.charts import Bar
 import plotly.subplots as sp
 import plotly.graph_objs as go
 import matplotlib.colors as mcolors
+import plotly.figure_factory as ff
+from sklearn.metrics import confusion_matrix
 import dash
 from dash import dash_table,html
 
@@ -34,7 +36,7 @@ pio.templates['my_template'] = my_template
 pio.templates.default = 'my_template'
 
 @server.route('/', methods=['GET','POST'])
-def upload_file():
+def Homepage():
     return render_template('AI Fairness Dashboard.html')
 
 @server.route('/generate_visual', methods=['POST'])
@@ -192,6 +194,44 @@ def generate_table():
     return table_chart
 
 
+
+def generate_confusion_matrix(df, target_attribute, prediction):
+    # Compute confusion matrix
+    cm = confusion_matrix(df[target_attribute], df[prediction])
+
+    # Convert confusion matrix to z-scores for heatmap
+    z = cm[::-1]
+
+    # Change each element of z to type string for annotations
+    z_text = [[str(y) for y in x] for x in z]
+
+    # Set up the figure 
+    fig = ff.create_annotated_heatmap(z, annotation_text=z_text, colorscale='Viridis')
+
+    # Add title
+    fig.update_layout(title_text='<i><b>Confusion matrix</b></i>',
+                      # Add x-axis and y-axis labels
+                      xaxis = dict(title='Predicted value',
+                                   tickmode='array',
+                                   tickvals=[0,1],
+                                   ticktext=['Negative', 'Positive']),
+                      yaxis = dict(title='Actual value',
+                                   tickmode='array',
+                                   tickvals=[0,1],
+                                   ticktext=['Positive', 'Negative'],
+                                   autorange="reversed"),
+                      # Add colorbar
+                      autosize=True)
+
+    return fig
+
+@server.route('/Confusion Matrix')   
+def generate_confusion_matrix_route():
+    target_attribute = df[sensitive_attribute]
+    Prediction = df[Prediction]
+    fig = generate_confusion_matrix(df, target_attribute, Prediction)
+    confusion_matrix_plot = pio.to_html(fig, full_html=False)
+    return jsonify({'confusion_matrix_plot': confusion_matrix_plot})
 
 
 if __name__ == '__main__':
