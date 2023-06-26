@@ -195,16 +195,16 @@ def generate_table():
 
 def generate_confusion_matrix():
     # Compute confusion matrix
-    # Compute confusion matrix
     cm = confusion_matrix(list(df[target_attribute]), list(df[Prediction]), labels=df[target_attribute].unique())
 
     # Calculate rates
     tn, fp, fn, tp  = cm.ravel()
     total = tn + fp + fn + tp
-    TP_rate = tp / (tp+fn)
-    FP_rate = fp / (fp+tn)
-    TN_rate = tn / (tn+fp)
-    FN_rate = fn / (fn+tp)
+    TP_rate = round(tp / (tp+fn) * 100, 2)
+    FP_rate = round(fp / (fp+tn) * 100, 2)
+    TN_rate = round(tn / (tn+fp) * 100, 2)
+    FN_rate = round(fn / (fn+tp) * 100, 2)
+    Accuracy = round((tp+tn) / total * 100, 2)
 
     # Convert confusion matrix to z-scores for heatmap
     z = cm[::-1]
@@ -212,42 +212,39 @@ def generate_confusion_matrix():
     # Change each element of z to type string for annotations
     z_text = [[str(y) for y in x] for x in z]
 
-    # Set up the figure 
-    fig = ff.create_annotated_heatmap(z, annotation_text=z_text, colorscale='sunset')
+    # Get unique values in the same order for both target_attribute and Prediction
+    unique_values = df[target_attribute].unique()
 
-    # Add title
-    fig.update_layout(
-        # title_text='<i><b>Fairness Matrix</b></i>',
-        # Add x-axis and y-axis labels
-        xaxis = dict(title='Predicted value',
-                    tickmode='array',
-                    tickvals=[0,1],
-                    ticktext=['Negative', 'Positive'],
-                    title_standoff = 5),
-        yaxis = dict(title='Actual value',
-                    tickmode='array',
-                    tickvals=[0,1],
-                    ticktext=['Positive', 'Negative'],
-                    autorange="reversed",
-                    title_standoff = 5),
-        # Add colorbar
-        autosize=True,
-        # Resize figure
-        width=500,
-        height=300,
-        # Add rates as annotations
-        annotations=[
-            dict(text='TP rate: {:.2f}'.format(TP_rate), showarrow=False),
-            dict(text='FP rate: {:.2f}'.format(FP_rate), showarrow=False),
-            dict(text='TN rate: {:.2f}'.format(TN_rate), showarrow=False),
-            dict(text='FN rate: {:.2f}'.format(FN_rate), showarrow=False),
-        ],
-        # Adjust margins
-    )
+    # Create heatmap
+    heatmap = ff.create_annotated_heatmap(z, x=list(unique_values),y= list(reversed(unique_values)),annotation_text=z_text, colorscale='Viridis')
 
+    
 
-    confusion_matrix_html = pio.to_html(fig, full_html=False)
+    # Update xaxis and yaxis for heatmap
+    heatmap.update_xaxes(title_text='Predicted value', tickmode='array', tickvals=list(range(len(unique_values))), ticktext=list(unique_values))
+    heatmap.update_yaxes(title_text='Actual value', tickmode='array', tickvals=list(range(len(unique_values))), ticktext=list(reversed(unique_values)),title_standoff=25)
+    heatmap.update_layout(height=250, width=350)
+
+    # Create table
+    rates = [TP_rate, FP_rate, TN_rate, FN_rate, Accuracy]
+    rate_names = ['TP rate', 'FP rate', 'TN rate', 'FN rate', 'Accuracy']
+    table = go.Figure(data=[go.Table(header=dict(values=['<b>Rate</b>', '<b>Value (%)</b>']), cells=dict(values=[rate_names, rates]))])
+    table.update_layout(height=200, width=350)
+
+    # Convert both figures to HTML
+    heatmap_html = pio.to_html(heatmap, full_html=False)
+    table_html = pio.to_html(table, full_html=False)
+
+    # Combine both HTML strings into a single string
+    confusion_matrix_html = '<div style="display: flex; flex-direction: column; align-items: left;">' + heatmap_html + table_html + '</div>'
+
     return confusion_matrix_html
+
+
+
+
+
+
 
 
 
