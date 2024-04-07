@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About | AI Fairness Dashboard</title>
+    <!-- Include Bootstrap CSS -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='UTS ICON.png') }}">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        .content {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h2, h3 {
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        p {
+            line-height: 1.6;
+            font-size: 18px;
+        }
+
+        .highlight {
+            background-color: #e8f4fd;
+            padding: 10px;
+            border-left: 4px solid #2c87f0;
+            margin: 20px 0;
+        }
+
+        /* Styles for the new div */
+        #inputFile {
+            margin-bottom: 20px;
+        }
+
+        #generateVisual, #statisticalParityBtn, #equalOpportunityBtn, #equalizedOddsBtn {
+            margin-top: 10px;
+            margin-bottom: 10px;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+<div class="content">
+    <h2>Welcome to the AI Fairness Dashboard</h2>
+    <p>
+        In the rapidly evolving world of artificial intelligence, ensuring fairness in AI models is paramount. As these models influence an increasing number of decisions, the importance of transparency and equity cannot be understated.
+    </p>
+    
+    <div class="highlight">
+        This dashboard helps to analyze and visualize fairness in AI models using various definitions such as statistical parity, equal opportunity, and equalized odds.
+    </div>
+
+    <p>
+        We're committed to promoting fairness in AI and providing tools that empower users to understand and address potential biases. Through this dashboard, we aim to provide a clear and comprehensive view of how AI models perform across different fairness metrics.
+    </p>
+
+    <div class="col-md-4">
+        <h3>Input Your Data</h3>
+        <p>Upload your dataset in CSV or JSON format:</p>
+        <input type="file" id="inputFile" accept=".csv, .json">
+        <!-- Sensitive and target attribute selection -->
+        <div id="attributeSelection" style="display: none;">
+            <h4>Select Sensitive Attributes</h4>
+            <select multiple class="form-control" id="sensitiveAttributes"></select>
+            <h4>Select Target Attribute</h4>
+            <select class="form-control" id="targetAttribute"></select>
+            <h4>Select Prediction</h4>
+            <select class="form-control" id="Prediction"></select>
+            <button id="generateVisual" class="btn btn-primary">Generate Visualization</button>
+        </div>
+        <div id="fairnessDefinitions" style="display: none;">
+            <h3>Select Fairness Definition:</h3>
+            <button id="statisticalParityBtn" class="btn btn-secondary">Statistical Parity</button>
+            <button id="equalOpportunityBtn" class="btn btn-secondary">Equal Opportunity</button>
+            <button id="equalizedOddsBtn" class="btn btn-secondary">Equalized Odds</button>
+            <h4></h4>
+            <br><div id="confusion_matrix_plot"></div><br>
+        </div>
+    </div>
+    
+    <p>
+        Thank you for joining us on this journey towards a more equitable AI landscape.
+    </p>
+</div>
+
+<!-- Include Bootstrap JS (optional but required for some components) -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

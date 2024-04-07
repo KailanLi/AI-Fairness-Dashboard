@@ -1,4 +1,4 @@
-from flask import render_template, request, jsonify, session
+from flask import Flask, render_template, jsonify, request, session
 from flask import current_app as app
 import pandas as pd
 import plotly.express as px
@@ -31,29 +31,60 @@ pio.templates['my_template'] = my_template
 pio.templates.default = 'my_template'
 
 @app.route('/')
-def Homepage():
-    return render_template('AI Fairness Dashboard.html')
+def About():
+    return render_template('About.html')
 
-@app.route('/generate_visual', methods=['POST'])
-def generate_visual():
+
+@app.route('/generate_visual', methods=['Get','POST'])
+def storedata():
+    data = request.get_json()
+    transferredData = data.get('transferredData')
+    
+    # Store data in the session
+    session['processed_data'] = transferredData
+    session['sensitive_attribute'] = data['sensitiveAttribute']
+    session['target_attribute'] = data['targetAttribute']
+    session['Prediction'] = data['Prediction']
+
+    # Return a success response
+    return jsonify({"message": "Data stored successfully!"}), 200
+
+
+@app.route('/Casual')
+def casual():
+    return render_template('Casual.html')
+
+
+
+@app.route('/AIFairnessDashboard', methods=['GET','POST'])
+
+def dashboard():
     global df
     global sensitive_attribute
     global target_attribute
     global Prediction
     global grouped_df
-    data = request.get_json()
-    df = pd.DataFrame(data['transferredData'])
-    sensitive_attribute = data['sensitiveAttribute']
-    target_attribute = data['targetAttribute']
-    Prediction = data['Prediction']
-    print(df[target_attribute].head())
+    processed_data = session.get('processed_data')
+    sensitive_attribute = session.get('sensitive_attribute')
+    target_attribute = session.get('target_attribute')
+    Prediction = session.get('Prediction')
+    df=pd.DataFrame(processed_data)
+    print(df.shape)
     grouped_df = df.groupby([sensitive_attribute, target_attribute]).size().reset_index(name='counts')
     table_plot=generate_table()
     bar_plot=generate_bar()
     confusion_matrix_plot=generate_confusion_matrix()
     sankey_chart = generate_sankey()
     sankey_plot = pio.to_html(sankey_chart, full_html=False)
-    return jsonify({'table_plot':table_plot,'bar_plot': bar_plot, 'sankey_plot': sankey_plot,'confusion_matrix_plot': confusion_matrix_plot})
+    return render_template(
+        "AI Fairness Dashboard.html", 
+        table_plot=table_plot,
+        bar_plot=bar_plot,
+        sankey_plot=sankey_plot,
+        confusion_matrix_plot=confusion_matrix_plot
+    )
+
+
 
 def generate_bar():
     color_dict = {value: color for value, color in zip(df[target_attribute].unique(), px.colors.qualitative.G10)}
@@ -233,14 +264,6 @@ def generate_confusion_matrix():
     confusion_matrix_html = '<div style="display: flex; flex-direction: column; align-items: left;">' + heatmap_html + table_html + '</div>'
 
     return confusion_matrix_html
-
-
-
-
-
-
-
-
 
 # @server.route('/Confusion_Matrix', methods=['GET'])
 # def test():

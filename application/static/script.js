@@ -105,8 +105,10 @@ function displayAttributeSelection(parsedData) {
                 $("#bar_plot").html(data.bar_plot);
                 $("#sankey_plot").html(data.sankey_plot);
                 $("#confusion_matrix_plot").html(data.confusion_matrix_plot);
+                // sessionStorage.setItem('data',data);
+                window.location.href = "/AIFairnessDashboard";
             }
-        });
+        });        
 
         
     });

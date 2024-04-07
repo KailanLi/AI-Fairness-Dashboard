@@ -1,6 +1,12 @@
 /* Set a custom background color for the body */
 body {
-  background-color: #f3f3f3;
+  background-color: #e8eaf6; /* Shallow academic color */
+  font-family: 'Times New Roman', serif;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center content horizontally */
 }
 
 /* Style the page title */
@@ -9,7 +15,7 @@ h1 {
   color: #00418E;
   font-family: 'Times New Roman', Times, serif;
   text-align: center;
-  margin-top: 50px;
+  margin-top: 10px;
 }
 
 /* Style the paragraph text */
@@ -22,11 +28,11 @@ p {
 
 /* Style the section headings */
 h3 {
-  font-size: 24px;
+  font-size: 18px;
   color: #00418E;
   font-family: 'Times New Roman', Times, serif;
-  margin-top: 30px;
-  margin-bottom: 20px;
+  margin-top: 10px;
+  margin-bottom: 10px;
 }
 
 /* Style the input file button */
@@ -72,11 +78,19 @@ input[type="file"] {
   box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
 } */
 
-.table-container {
+.col-md-12.Data-Sample{
+  height: 25vh; /* Reduced height */
+  overflow-y: auto; /* Allow scrolling if content exceeds container height */
   padding: 0;
-  background-color: white;
+  margin: 0 auto; /* Center table container */
+  justify-content: center;  /* Horizontally center the navigation items */
+  align-items: center;  /* Vertically center the navigation items */
+  width: 100%; /* Ensure navbar takes full width */
 }
-
+.container-fluid {
+  width: 80%; /* Reduce width to center content */
+  margin: 0 auto; /* Center the main container */
+}
 .table {
   border-collapse: collapse;
   width: 100%;
@@ -107,19 +121,13 @@ input[type="file"] {
 
 
 .visualization-container {
-  overflow: auto;
+  width: 100%;
+  height: 350px; /* Set the desired height for your visualization containers */
+  font-size: 12px;
+  font-family: 'Arial', sans-serif;
+  color: #343A40;
 }
 
-.visualization-section {
-  margin-left: -150px;
-}
-.Data-Sample{
-  margin-left: -150px;
-}
-
-.Data-Sample{
-  margin-left: 100;
-}
 
 .flex-column {
   display: flex;
@@ -128,9 +136,51 @@ input[type="file"] {
 
 .chart-container {
     width: 100%;
-    height: 400px; /* Set the desired height for your visualization containers */
+    height: 350px; /* Set the desired height for your visualization containers */
     font-size: 12px;
     font-family: 'Arial', sans-serif;
     color: #343A40;
   }
 
+  /* Styling for the navigation bar */
+
+  .navbar a {
+      float: left;
+      display: block;
+      color: white;
+      text-align: center;
+      padding: 14px 16px;
+      text-decoration: none;
+  }
+
+  .navbar a:hover {
+      background-color: #ddd;
+      color: black;
+  }
+  body {
+    font-family: 'Times New Roman', serif;
+    margin: 0;
+    padding: 0;
+}
+
+.header, .footer {
+  background-color: #f8f8f8;
+  text-align: center;
+  padding: 20px;
+}
+.navbar {
+  background-color: #333;
+  text-align: center;
+  padding: 0 10%;
+  display: flex;
+  justify-content: space-between;  ;  /* Horizontally center the navigation items */
+  align-items: center;  /* Vertically center the navigation items */
+  width: 100%; /* Ensure navbar takes full width */
+}
+
+
+
+.content {
+  padding: 20px 10%;
+  text-align: center;
+}
